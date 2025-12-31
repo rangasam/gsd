@@ -98,6 +98,112 @@ By completing these labs, you will:
 
 ---
 
+### Lab 1.5: Enhanced Container Build (`container`)
+
+**Objective:** Build and deploy an enhanced Node.js web application with updated dependencies
+
+**What you'll build:** An improved Express.js web app with modern Handlebars configuration showing "WebAssembly is the future!"
+
+**Technologies:** Node.js, Express, Handlebars (updated), Docker
+
+- Docker hub image: [rangasam/gsd:ctr2023](https://hub.docker.com/repository/docker/rangasam/gsd)
+
+#### Lab 1.5 Tasks:
+
+**Task 1.5.1: Directory Navigation and Verification**
+1. Verify Docker installation from the root directory:
+   ```bash
+   docker --version
+   ```
+   Expected output: `Docker version 28.0.4, build b8034c0`
+
+2. Attempt to build from root directory (will show error - demonstrates importance of correct directory):
+   ```bash
+   docker image build -t rangasam/gsd:ctr2023 .
+   ```
+   Expected error: `ERROR: failed to solve: failed to read dockerfile: open Dockerfile: no such file or directory`
+
+3. List directories to locate the correct lab directory:
+   ```bash
+   ll
+   # OR
+   ls -la
+   ```
+   You should see directories including: `container`, `first-container`, `compose`, etc.
+
+**Task 1.5.2: Navigate to Container Directory and Build**
+1. Navigate to the container directory:
+   ```bash
+   cd container
+   ```
+
+2. Verify Docker version from the correct directory:
+   ```bash
+   docker --version
+   ```
+   Output: `Docker version 28.0.4, build b8034c0`
+
+3. Build the Docker image successfully:
+   ```bash
+   docker image build -t rangasam/gsd:ctr2023 .
+   ```
+
+**Task 1.5.3: Analyze the Successful Build Process**
+The successful build demonstrates:
+- Build time: ~2.8s (much faster due to layer caching)
+- Base image: `node:current-alpine` with cached layers
+- Build context: 1.22kB transferred
+- Cached dependency installation (`npm install`)
+- Final image tagged as `rangasam/gsd:ctr2023`
+
+**Build Output Analysis:**
+```
+[+] Building 2.8s (11/11) FINISHED
+ => [internal] load build definition from Dockerfile
+ => [internal] load metadata for docker.io/library/node:current-alpine
+ => [auth] library/node:pull token for registry-1.docker.io
+ => [internal] load .dockerignore
+ => [1/5] FROM docker.io/library/node:current-alpine@sha256:f4769...
+ => [internal] load build context
+ => CACHED [2/5] RUN mkdir -p /usr/src/app
+ => CACHED [3/5] COPY . /usr/src/app
+ => CACHED [4/5] WORKDIR /usr/src/app
+ => CACHED [5/5] RUN npm install
+ => exporting to image
+```
+
+**Task 1.5.4: Test the Enhanced Container**
+1. Run the container:
+   ```bash
+   docker run -d -p 8080:8080 --name enhanced-container rangasam/gsd:ctr2023
+   ```
+
+2. Test the application:
+   ```bash
+   curl http://localhost:8080
+   # OR open http://localhost:8080 in your browser
+   ```
+
+3. Verify the updated message displays: "WebAssembly is the future!"
+
+**Key Learning Points:**
+- **Directory Context Matters**: Docker build must be run from the directory containing the Dockerfile
+- **Layer Caching**: Subsequent builds are faster due to Docker's layer caching mechanism
+- **Build Context**: Docker builds include the current directory context (1.22kB in this case)
+- **Error Debugging**: Understanding error messages helps troubleshoot build issues
+
+**Validation Checklist:**
+- [ ] Docker version 28.0.4 confirmed from both root and container directory
+- [ ] Directory error demonstrated from root directory
+- [ ] Successful navigation to `container` directory
+- [ ] Image builds successfully in ~2.8 seconds
+- [ ] Build utilizes layer caching (CACHED steps visible)
+- [ ] Image tagged as `rangasam/gsd:ctr2023`
+- [ ] Application displays "WebAssembly is the future!" message
+- [ ] Container responds on http://localhost:8080
+
+---
+
 ### Lab 2: Multi-Container Application with Docker Compose (`compose`)
 
 **Objective:** Deploy a Flask application with Redis backend using Docker Compose
