@@ -1,6 +1,6 @@
 # Getting Started with Docker - Lab Workbook
 
-Official repo for Getting Started with Docker video training course by [@nigelpoulton](https://twitter.com/nigelpoulton)
+Official repo for Getting Started with Docker video training course by [@rangasam](https://twitter.com/rangasam)
 
 ## 📋 Course Overview
 
