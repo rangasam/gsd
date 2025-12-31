@@ -98,6 +98,77 @@ By completing these labs, you will:
 
 ---
 
+### Lab 1.5: Enhanced Container Build (`container`)
+
+**Objective:** Build and deploy an updated Node.js web application with improved Express Handlebars integration
+
+**What you'll build:** An enhanced Express.js web app with updated dependencies and modern Handlebars configuration
+
+**Technologies:** Node.js, Express, Handlebars (updated), Docker
+
+- Docker hub image: [rangasam/gsd:ctr2023](https://hub.docker.com/repository/docker/rangasam/gsd)
+
+#### Lab 1.5 Tasks:
+
+**Task 1.5.1: Verify Docker Installation**
+1. Navigate to the `container` directory
+2. Verify Docker version and functionality:
+   ```bash
+   cd container
+   docker --version
+   ```
+   Expected output: `Docker version 28.0.4, build b8034c0`
+
+**Task 1.5.2: Build the Enhanced Container Image**
+1. Review the updated application code:
+   - Check `app.js` for Express Handlebars engine configuration updates
+   - Note the updated message: "WebAssembly is the future!"
+   - Examine `package.json` for updated dependency versions
+
+2. Build the Docker image with the 2023 tag:
+   ```bash
+   docker image build -t rangasam/gsd:ctr2023 .
+   ```
+
+**Task 1.5.3: Analyze Build Process**
+The build process demonstrates:
+- Multi-stage Docker build using `node:current-alpine` base image
+- Efficient layer caching and optimization
+- Build context transfer and dependency installation
+- Image export and tagging process
+
+**Build Output Analysis:**
+- Build time: ~21.2s for complete build
+- Base image: `node:current-alpine` (Linux Alpine-based)
+- Dependencies installed via `npm install`
+- Final image tagged as `rangasam/gsd:ctr2023`
+- Build details available in Docker Desktop dashboard
+
+**Task 1.5.4: Run and Test the Enhanced Container**
+1. Run the container:
+   ```bash
+   docker run -d -p 8080:8080 --name enhanced-container rangasam/gsd:ctr2023
+   ```
+
+2. Test the application:
+   ```bash
+   curl http://localhost:8080
+   # OR open http://localhost:8080 in your browser
+   ```
+
+3. Verify the updated message displays: "WebAssembly is the future!"
+
+**Validation Checklist:**
+- [ ] Docker version 28.0.4 confirmed
+- [ ] Image builds successfully in ~21 seconds
+- [ ] Build uses node:current-alpine base image
+- [ ] Image tagged as rangasam/gsd:ctr2023
+- [ ] Application displays "WebAssembly is the future!" message
+- [ ] Container responds on http://localhost:8080
+- [ ] Enhanced Express Handlebars engine works correctly
+
+---
+
 ### Lab 2: Multi-Container Application with Docker Compose (`compose`)
 
 **Objective:** Deploy a Flask application with Redis backend using Docker Compose
