@@ -310,24 +310,54 @@ The successful build demonstrates:
 
 **Task 3.1: Initialize Docker Swarm**
 1. Navigate to the `swarm` directory
-2. Initialize Swarm mode:
+2. Initialize Swarm mode (examples and common pitfalls):
+
    ```bash
-   # Common permission error if docker is run without sufficient privileges
-   ubuntu@node1:~$ docker swarm init --advertise-addr 10.211.55.15
-   permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Post "http://%2Fvar%2Frun%2Fdocker.sock/v1.51/swarm/init": dial unix /var/run/docker.sock: connect: permission denied
+   # -- Common typo: 'adrvertise' (misspelling) -> will produce unknown flag
+   ubuntu@node1:~$ docker swarm init --adrvertise-addr 10.211.55.15
+   unknown flag: --adrvertise-addr
 
-   # Use sudo to run the command as root (or ensure your user is in the docker group)
+   Usage:  docker swarm init [OPTIONS]
+
+   Run 'docker swarm init --help' for more information
+
+   # -- Permission denied if your user is not permitted to access the Docker socket
+   ubuntu@node1:~$ docker container ls
+   permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Get "http://%2Fvar%2Frun%2Fdocker.sock/v1.51/containers/json": dial unix /var/run/docker.sock: connect: permission denied
+
+   # Use sudo (or add your user to the docker group) to perform swarm admin actions
+   ubuntu@node1:~$ sudo docker container ls
+   CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+
+   # -- Another typo example: 'farm' is not a docker command
+   ubuntu@node1:~$ sudo docker farm init --advertise-addr 10.211.55.15
+   unknown flag: --advertise-addr
+
+   ubuntu@node1:~$ sudo docker farm init
+   docker: unknown command: docker farm
+
+   # -- Correct command: initialize swarm with advertise address
+   ubuntu@node1:~$ docker --version
+   Docker version 28.4.0, build d8eb465
+
+   # If you see a permission error, run with sudo or add user to docker group:
+   #   sudo usermod -aG docker $USER && newgrp docker
+
    ubuntu@node1:~$ sudo docker swarm init --advertise-addr 10.211.55.15
-   Swarm initialized: current node (y30lu8ssckzelzpr6c051s51o) is now a manager.
+   Swarm initialized: current node (tbvdwy58oj1ii09g5o8trlnbc) is now a manager.
 
-   To add a worker to this swarm, run the following command:
+   To add a worker to this swarm, run the following command (example token):
 
-       docker swarm join --token SWMTKN-1-0sg0zfqqw3mcavdd0csjhknyns3ry18oa7tbik8msbev6zxw4m-7h2cennchk4fzpacqzubcao3x 10.211.55.15:2377
+      docker swarm join --token SWMTKN-1-0g2qbsep9spedwsxqllneimqhchzgdy99ipiznqio4cuh4xu23-4hgzddvexyntd1ruyidihj487 10.211.55.15:2377
 
-   To add a manager to this swarm, run 'docker swarm join-token manager' and follow the instructions.
+   To add a manager to this swarm, run:
+
+      docker swarm join-token manager
+
    ```
 3. Verify Swarm status:
    ```bash
+   # On manager node (may require sudo)
    docker node ls
    ```
 4. Review `compose.yml` and note the `deploy` section for replica configuration
@@ -374,6 +404,86 @@ The successful build demonstrates:
    ```bash
    docker service scale counter-stack_web-fe=5
    ```
+
+## Examples: Scaling services (real session)
+
+The following is a real terminal session showing common permission errors, use of `sudo`, successful scaling of services, verification with `docker service ps`, and service/container cleanup. This is included as a reference for what to expect when operating on a Swarm manager node.
+
+```bash
+ubuntu@node1:~$ docker service scale web3=5
+web3: permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Get "http://%2Fvar%2Frun%2Fdocker.sock/v1.51/services/web3?insertDefaults=false": dial unix /var/run/docker.sock: connect: permission denied
+
+# Use sudo on systems where your user does not have access to the Docker socket
+ubuntu@node1:~$ sudo docker service scale web3=5
+web3 scaled to 5
+overall progress: 5 out of 5 tasks 
+1/5: running   [==================================================>] 
+2/5: running   [==================================================>] 
+3/5: running   [==================================================>] 
+4/5: running   [==================================================>] 
+5/5: running   [==================================================>] 
+verify: Service web3 converged
+
+ubuntu@node1:~$ sudo docker service scale web1=5
+web1 scaled to 5
+overall progress: 5 out of 5 tasks 
+1/5: running   [==================================================>] 
+2/5: running   [==================================================>] 
+3/5: running   [==================================================>] 
+4/5: running   [==================================================>] 
+5/5: running   [==================================================>] 
+verify: Service web1 converged
+
+# Inspect the tasks for the service (use sudo if required on your host)
+ubuntu@node1:~$ sudo docker service ps web3
+ID             NAME      IMAGE                      NODE      DESIRED STATE   CURRENT STATE                ERROR     PORTS
+zqzdnq15atg2   web3.1    nigelpoulton/gsd:web2023   node3     Running         Running 13 minutes ago                 
+l2uaavb9n87   web3.2    nigelpoulton/gsd:web2023   node4     Running         Running 13 minutes ago                 
+nl5unaj9ht87   web3.3    nigelpoulton/gsd:web2023   node5     Running         Running 13 minutes ago                 
+tidf3i510aiv   web3.4    nigelpoulton/gsd:web2023   node3     Running         Running about a minute ago             
+u1vbtastrlbb   web3.5    nigelpoulton/gsd:web2023   node4     Running         Running about a minute ago             
+
+ubuntu@node1:~$ sudo docker service ps web1
+ID             NAME      IMAGE                  NODE      DESIRED STATE   CURRENT STATE                ERROR     PORTS
+l4wkkjc1dign   web1.1    rangasam/gsd:ctr2023   node3     Running         Running 16 minutes ago                 
+ve10uo92ccmm   web1.2    rangasam/gsd:ctr2023   node4     Running         Running 16 minutes ago                 
+h8hc5ck8ezvt   web1.3    rangasam/gsd:ctr2023   node5     Running         Running 16 minutes ago                 
+lti7ycgksnvm   web1.4    rangasam/gsd:ctr2023   node4     Running         Running about a minute ago             
+1v1gkpiaeqdf   web1.5    rangasam/gsd:ctr2023   node5     Running         Running about a minute ago             
+
+# If non-root users see socket permission errors, either use sudo or add your user to the docker group:
+#   sudo usermod -aG docker $USER
+# then log out/in or restart the shell session.
+
+# View local containers (requires permission)
+ubuntu@node1:~$ docker container ls
+permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Get "http://%2Fvar%2Frun%2Fdocker.sock/v1.51/containers/json": dial unix /var/run/docker.sock: connect: permission denied
+
+ubuntu@node1:~$ sudo docker container ls
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+
+# On worker nodes you can inspect running containers and, if necessary, stop/remove them.
+ubuntu@node5:~$ sudo docker container ls
+CONTAINER ID   IMAGE                      COMMAND         CREATED          STATUS          PORTS                                                             NAMES
+1a2ce88eda7a   rangasam/gsd:ctr2023       "node app.js"   3 minutes ago    Up 3 minutes                                                                      web1.5.1v1gkpiaeqdffvxhnte21zd58
+b91515f95a50   nigelpoulton/gsd:web2023   "node app.js"   16 minutes ago   Up 16 minutes                                                                     web3.3.nl5unaj9ht87ap8vk0ct6nbrn
+3663c7060341   rangasam/gsd:ctr2023       "node app.js"   18 minutes ago   Up 18 minutes                                                                     web1.3.h8hc5ck8ezvtt9253te0pgbpy
+
+# Stop and remove containers (use -f to force remove running containers)
+ubuntu@node5:~$ sudo docker container rm 1a2ce88eda7a b91515f95a50 3663c7060341 -f
+1a2ce88eda7a
+b91515f95a50
+3663c7060341
+
+``` 
+
+### Notes & troubleshooting
+
+- Common typos/invalid commands seen in practice: `--adrvertise-addr` (typo), `docker farm` (invalid command). Use `docker swarm init --advertise-addr <IP>`.
+- If `docker service ps` shows `Rejected` with `No such image`, ensure the image exists on the node or is pullable from a registry (check image name spelling).
+- When removing services, use `sudo docker service rm <name>` on systems requiring root.
+- To avoid repeatedly using `sudo`, add your user to the `docker` group as shown above (requires logout/login).
+
 
 **Task 3.5: Update and Rolling Deployment**
 1. Update the service with a rolling update:
