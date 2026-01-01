@@ -312,7 +312,19 @@ The successful build demonstrates:
 1. Navigate to the `swarm` directory
 2. Initialize Swarm mode:
    ```bash
-   docker swarm init
+   # Common permission error if docker is run without sufficient privileges
+   ubuntu@node1:~$ docker swarm init --advertise-addr 10.211.55.15
+   permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Post "http://%2Fvar%2Frun%2Fdocker.sock/v1.51/swarm/init": dial unix /var/run/docker.sock: connect: permission denied
+
+   # Use sudo to run the command as root (or ensure your user is in the docker group)
+   ubuntu@node1:~$ sudo docker swarm init --advertise-addr 10.211.55.15
+   Swarm initialized: current node (y30lu8ssckzelzpr6c051s51o) is now a manager.
+
+   To add a worker to this swarm, run the following command:
+
+       docker swarm join --token SWMTKN-1-0sg0zfqqw3mcavdd0csjhknyns3ry18oa7tbik8msbev6zxw4m-7h2cennchk4fzpacqzubcao3x 10.211.55.15:2377
+
+   To add a manager to this swarm, run 'docker swarm join-token manager' and follow the instructions.
    ```
 3. Verify Swarm status:
    ```bash
