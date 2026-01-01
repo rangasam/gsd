@@ -308,7 +308,9 @@ The successful build demonstrates:
 
 #### Lab 3 Tasks:
 
-**Task 3.1: Initialize Docker Swarm**
+
+#### Task 3.1: Initialize Docker Swarm
+
 1. Navigate to the `swarm` directory
 2. Initialize Swarm mode (examples and common pitfalls):
 
@@ -362,7 +364,8 @@ The successful build demonstrates:
    ```
 4. Review `compose.yml` and note the `deploy` section for replica configuration
 
-**Task 3.2: Deploy as Docker Stack**
+#### Task 3.2: Deploy as Docker Stack
+
 1. Deploy the application stack:
    ```bash
    docker stack deploy -c compose.yml counter-stack
@@ -376,7 +379,8 @@ The successful build demonstrates:
    docker stack services counter-stack
    ```
 
-**Task 3.3: Observe Service Scaling**
+#### Task 3.3: Observe Service Scaling
+
 1. Check running containers (should see 10 web replicas):
    ```bash
    docker service ps counter-stack_web-fe
@@ -391,7 +395,8 @@ The successful build demonstrates:
    docker service ls
    ```
 
-**Task 3.4: Scale Services Dynamically**
+#### Task 3.4: Scale Services Dynamically
+
 1. Scale the web service up:
    ```bash
    docker service scale counter-stack_web-fe=15
@@ -416,7 +421,7 @@ web3: permission denied while trying to connect to the Docker daemon socket at u
 # Use sudo on systems where your user does not have access to the Docker socket
 ubuntu@node1:~$ sudo docker service scale web3=5
 web3 scaled to 5
-overall progress: 5 out of 5 tasks 
+overall progress: 5 out of 5 tasks
 1/5: running   [==================================================>] 
 2/5: running   [==================================================>] 
 3/5: running   [==================================================>] 
@@ -426,7 +431,7 @@ verify: Service web3 converged
 
 ubuntu@node1:~$ sudo docker service scale web1=5
 web1 scaled to 5
-overall progress: 5 out of 5 tasks 
+overall progress: 5 out of 5 tasks
 1/5: running   [==================================================>] 
 2/5: running   [==================================================>] 
 3/5: running   [==================================================>] 
@@ -484,8 +489,36 @@ b91515f95a50
 - When removing services, use `sudo docker service rm <name>` on systems requiring root.
 - To avoid repeatedly using `sudo`, add your user to the `docker` group as shown above (requires logout/login).
 
+### Scale using stack / service update
 
-**Task 3.5: Update and Rolling Deployment**
+You can scale services created by a stack using the service name (as shown above) or by updating the stack/service directly. Examples:
+
+```bash
+# Re-deploy the stack after changing `replicas:` values in the Compose file
+docker stack deploy -c compose.yml counter-stack
+
+# Or update a service directly (set replicas with service update)
+docker service update --replicas 5 counter-stack_web-fe
+
+# Update image for rolling update (example)
+docker service update --image rangasam/gsd:web2023 counter-stack_web-fe
+```
+
+### Scaling checklist (student steps)
+
+Follow these quick steps when scaling services in the lab:
+
+- Verify you are on a Swarm manager: `docker node ls` (use `sudo` if required)
+- Ensure all nodes can pull the image used by the service (`docker pull <image>` or push to registry)
+- Run the scale command: `docker service scale <service>=<replicas>` or `docker service update --replicas=<n> <service>`
+- Monitor progress: `docker service ps <service>` and `docker service ls`
+- Troubleshoot rejected tasks: check `docker service ps` for `Rejected` errors and `docker logs` on nodes if necessary
+- Clean up services when done: `docker service rm <service>` or `docker stack rm <stack>`
+
+
+
+#### Task 3.5: Update and Rolling Deployment
+
 1. Update the service with a rolling update:
    ```bash
    docker service update --image rangasam/gsd:swarm2023 counter-stack_web-fe
@@ -495,7 +528,8 @@ b91515f95a50
    docker service ps counter-stack_web-fe
    ```
 
-**Task 3.6: Cleanup**
+#### Task 3.6: Cleanup
+
 1. Remove the stack:
    ```bash
    docker stack rm counter-stack
